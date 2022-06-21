@@ -48,47 +48,47 @@ class CropPresenter(private val context: Context, private val iCropView: ICropVi
         iCropView.getPaper().setImageBitmap(bitmap)
     }
 
-    private fun addImageToGalleryOldApi(filePath: String, context: Context) {
-        if (Build.VERSION.SDK_INT > 28) {
-            return
-        }
-        Log.i("ADD IMAGE TO GALLERY ${Build.VERSION.SDK_INT}", filePath)
-        val values = ContentValues()
+//     private fun addImageToGalleryOldApi(filePath: String, context: Context) {
+//         if (Build.VERSION.SDK_INT > 28) {
+//             return
+//         }
+//         Log.i("ADD IMAGE TO GALLERY ${Build.VERSION.SDK_INT}", filePath)
+//         val values = ContentValues()
 
-        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-        values.put(MediaStore.MediaColumns.DATA, filePath)
+//         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+//         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+//         values.put(MediaStore.MediaColumns.DATA, filePath)
 
-        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-    }
+//         context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+//     }
 
-    private fun addImageToGallery(fileName: String, bitmap: Bitmap, context: Context) {
-        //val collection = MediaStore.Images.Media.getContentUri(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        if (Build.VERSION.SDK_INT < 29) {
-            return
-        }
-        val collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        Log.i(TAG, fileName)
-        val values = ContentValues()
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-        values.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis())
-        values.put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
-        values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-        values.put(MediaStore.MediaColumns.SIZE, bitmap.byteCount)
-        values.put(MediaStore.MediaColumns.WIDTH, bitmap.width)
-        values.put(MediaStore.MediaColumns.HEIGHT, bitmap.height)
-        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + IMAGES_DIR)
-        values.put(MediaStore.Images.Media.IS_PENDING, 1)
-        val uri = context.contentResolver.insert(collection, values)
-        context.contentResolver.openOutputStream(uri!!, "w").use {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-        }
-        Log.i(TAG, "$uri")
-        values.clear()
-        values.put(MediaStore.Images.Media.IS_PENDING, 0)
-        // val uri = Uri.fromFile(File(fileUrl!!)!!)
-        context.contentResolver.update(uri, values, null, null)
-    }
+//     private fun addImageToGallery(fileName: String, bitmap: Bitmap, context: Context) {
+//         //val collection = MediaStore.Images.Media.getContentUri(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+//         if (Build.VERSION.SDK_INT < 29) {
+//             return
+//         }
+//         val collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+//         Log.i(TAG, fileName)
+//         val values = ContentValues()
+//         values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+//         values.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis())
+//         values.put(MediaStore.MediaColumns.DATE_MODIFIED, System.currentTimeMillis())
+//         values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+//         values.put(MediaStore.MediaColumns.SIZE, bitmap.byteCount)
+//         values.put(MediaStore.MediaColumns.WIDTH, bitmap.width)
+//         values.put(MediaStore.MediaColumns.HEIGHT, bitmap.height)
+//         values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + File.separator + IMAGES_DIR)
+//         values.put(MediaStore.Images.Media.IS_PENDING, 1)
+//         val uri = context.contentResolver.insert(collection, values)
+//         context.contentResolver.openOutputStream(uri!!, "w").use {
+//             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+//         }
+//         Log.i(TAG, "$uri")
+//         values.clear()
+//         values.put(MediaStore.Images.Media.IS_PENDING, 0)
+//         // val uri = Uri.fromFile(File(fileUrl!!)!!)
+//         context.contentResolver.update(uri, values, null, null)
+//     }
 
     fun crop() {
         if (picture == null) {
@@ -227,8 +227,8 @@ class CropPresenter(private val context: Context, private val iCropView: ICropVi
         } else {
             val dir: File = when {
                 Build.VERSION.SDK_INT < 29 -> {
-                    Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES)
+                    val path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                    File(path, IMAGES_DIR)
                 }
                 else -> {
                     val path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -251,14 +251,14 @@ class CropPresenter(private val context: Context, private val iCropView: ICropVi
 
             val rotatePic = rotateBitmap
             if (null != rotatePic) {
-                addImageToGallery("rotate_${SystemClock.currentThreadTimeMillis()}.jpeg", rotateBitmap!!, this.context)
+                //addImageToGallery("rotate_${SystemClock.currentThreadTimeMillis()}.jpeg", rotateBitmap!!, this.context)
                 val file = File(dir, "rotate_${SystemClock.currentThreadTimeMillis()}.jpeg")
                 val outStream = FileOutputStream(file)
                 rotatePic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
                 outStream.flush()
                 outStream.close()
                 rotatePic.recycle()
-                addImageToGalleryOldApi(file.absolutePath, context)
+                //addImageToGalleryOldApi(file.absolutePath, context)
                 Log.i(TAG, "RotateBitmap Saved")
                 return file.absolutePath
                 //addImageToGallery(file.absolutePath, this.context) Commented as we don't want the images in the gallery.
@@ -268,14 +268,14 @@ class CropPresenter(private val context: Context, private val iCropView: ICropVi
                 val pic = enhancedPicture
 
                 if (null != pic) {
-                    addImageToGallery("enhance_${SystemClock.currentThreadTimeMillis()}.jpeg", enhancedPicture!!, this.context)
+                    //addImageToGallery("enhance_${SystemClock.currentThreadTimeMillis()}.jpeg", enhancedPicture!!, this.context)
                     val file = File(dir, "enhance_${SystemClock.currentThreadTimeMillis()}.jpeg")
                     val outStream = FileOutputStream(file)
                     pic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
                     outStream.flush()
                     outStream.close()
                     pic.recycle()
-                    addImageToGalleryOldApi(file.absolutePath, context)
+                    //addImageToGalleryOldApi(file.absolutePath, context)
                     Log.i(TAG, "EnhancedPicture Saved")
                     return file.absolutePath
                     //addImageToGallery(file.absolutePath, this.context) Commented as we don't want the images in the gallery.
@@ -283,14 +283,14 @@ class CropPresenter(private val context: Context, private val iCropView: ICropVi
                 } else {
                     val cropPic = croppedBitmap
                     if (null != cropPic) {
-                        addImageToGallery("crop_${SystemClock.currentThreadTimeMillis()}.jpeg", croppedBitmap!!, this.context)
+                        //addImageToGallery("crop_${SystemClock.currentThreadTimeMillis()}.jpeg", croppedBitmap!!, this.context)
                         val file = File(dir, "crop_${SystemClock.currentThreadTimeMillis()}.jpeg")
                         val outStream = FileOutputStream(file)
                         cropPic.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
                         outStream.flush()
                         outStream.close()
                         cropPic.recycle()
-                        addImageToGalleryOldApi(file.absolutePath, context)
+                        //addImageToGalleryOldApi(file.absolutePath, context)
                         Log.i(TAG, "CroppedBitmap Saved")
                         return file.absolutePath
                         //addImageToGallery(file.absolutePath, this.context) Commented as we don't want the images in the gallery.
